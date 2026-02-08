@@ -1,7 +1,9 @@
-// ===============================
-// GUPTA EMPIRE - CLEAN OPTIMIZED JS
-// Loader-free, stable & performant
-// ===============================
+document.body.classList.add('loading');
+
+window.addEventListener('load', () => {
+  document.body.classList.remove('loading');
+  document.body.classList.add('loaded');
+});
 
 "use strict";
 
@@ -22,7 +24,10 @@ const GuptaEmpire = {
   init() {
     if (this.initialized) return;
     this.initialized = true;
+    document.body.classList.remove('loading');
+    document.body.classList.add('loaded');
 
+    this.cacheDOM();
     this.cacheDOM();
     this.setupDisclaimer();
     this.setupNavbar();
@@ -265,4 +270,5 @@ document.readyState === "loading"
   : GuptaEmpire.init();
 
 window.addEventListener("unload", () => GuptaEmpire.cleanup());
+
 
