@@ -1,6 +1,6 @@
 /* ===============================
-   GUPTA EMPIRE - FINAL OPTIMIZED CSS
-   With Shimmer Loading Effects
+   GUPTA EMPIRE - OPTIMIZED CSS
+   Fixed Loading & Shimmer Effects
 ================================ */
 
 :root {
@@ -55,16 +55,6 @@ body {
     overflow-x: hidden;
 }
 
-/* body.loading {
-    overflow: hidden;
-}
-
-body.loaded .page-loader {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-} */
-
 /* ===============================
    SHIMMER ANIMATION
 ================================ */
@@ -77,54 +67,18 @@ body.loaded .page-loader {
     }
 }
 
-.shimmer {
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.05) 0%,
-        rgba(255, 255, 255, 0.15) 50%,
-        rgba(255, 255, 255, 0.05) 100%
-    );
-    background-size: 1000px 100%;
-    animation: shimmer 2s infinite;
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
-
-.shimmer-light {
-    background: linear-gradient(
-        90deg,
-        #e0e0e0 0%,
-        #f5f5f5 50%,
-        #e0e0e0 100%
-    );
-    background-size: 1000px 100%;
-    animation: shimmer 2s infinite;
-}
-
-/* ===============================
-   PAGE LOADER - SIMPLIFIED
-================================ */
-/* .page-loader {
-    position: fixed;
-    inset: 0;
-    background: #0b0b0b;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-
-.loader-spinner {
-    width: 50px;
-    height: 50px;
-    border: 3px solid rgba(201, 162, 77, 0.2);
-    border-top-color: var(--color-primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-} */
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1.05); }
 }
 
 /* ===============================
@@ -146,19 +100,18 @@ body.loaded .page-loader {
     z-index: 9999;
 }
 
+.disclaimer-bar.hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
 body:not(.disclaimer-dismissed) .disclaimer-bar {
     display: flex;
 }
 
 body.disclaimer-dismissed .disclaimer-bar {
     display: none;
-}
-
-.disclaimer-bar.hidden {
-    transform: translateY(-100%);
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .disclaimer-content {
@@ -269,12 +222,6 @@ body.has-disclaimer .hero {
     flex-shrink: 0;
 }
 
-/* Shimmer for logo while loading */
-.loading .logo:not([style*="background-image"]) {
-    background-image: none !important;
-    background-color: rgba(201, 162, 77, 0.2);
-}
-
 .logo:hover {
     transform: rotate(5deg) scale(1.05);
 }
@@ -377,7 +324,7 @@ body.has-disclaimer .hero {
 }
 
 /* ===============================
-   HERO SECTION WITH SHIMMER
+   HERO SECTION
 ================================ */
 .hero {
     position: relative;
@@ -415,30 +362,6 @@ body.has-disclaimer .hero {
     animation: fadeIn 0.8s ease-out;
 }
 
-/* Shimmer while hero background loads */
-.loading .hero-background {
-    background-color: #1a1a1a;
-}
-
-.loading .hero-background::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.02) 0%,
-        rgba(255, 255, 255, 0.08) 50%,
-        rgba(255, 255, 255, 0.02) 100%
-    );
-    background-size: 1000px 100%;
-    animation: shimmer 2.5s infinite;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
 .overlay-image {
     position: absolute;
     top: 66%;
@@ -456,26 +379,6 @@ body.has-disclaimer .hero {
     animation: fadeIn 1s ease-out 0.3s backwards;
 }
 
-/* Shimmer for overlay image */
-.loading .overlay-image::before {
-    content: '';
-    position: absolute;
-    inset: 10%;
-    border-radius: 50%;
-    background: radial-gradient(
-        circle,
-        rgba(201, 162, 77, 0.15) 0%,
-        rgba(201, 162, 77, 0.05) 50%,
-        transparent 100%
-    );
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 0.5; transform: scale(0.95); }
-    50% { opacity: 1; transform: scale(1.05); }
-}
-
 .hero-text {
     position: absolute;
     top: 75%;
@@ -491,22 +394,6 @@ body.has-disclaimer .hero {
     z-index: 2;
     pointer-events: none;
     animation: fadeIn 1s ease-out 0.6s backwards;
-}
-
-/* Shimmer for hero text */
-.loading .hero-text::before {
-    content: '';
-    position: absolute;
-    inset: 20% 10%;
-    background: linear-gradient(
-        90deg,
-        rgba(201, 162, 77, 0.1) 0%,
-        rgba(201, 162, 77, 0.3) 50%,
-        rgba(201, 162, 77, 0.1) 100%
-    );
-    background-size: 1000px 100%;
-    animation: shimmer 2s infinite;
-    border-radius: 8px;
 }
 
 /* ===============================
@@ -727,10 +614,8 @@ main {
     background-color: #222;
     overflow: hidden;
     transition: transform var(--transition-normal);
-    position: relative;
 }
 
-/* Shimmer for timeline avatars while loading */
 .timeline-avatar img {
     width: 100%;
     height: 100%;
@@ -738,38 +623,12 @@ main {
     display: block;
 }
 
-.timeline-avatar img:not([src]),
-.timeline-avatar img[src=""] {
-    opacity: 0;
-}
-
-.timeline-avatar::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(201, 162, 77, 0.1) 0%,
-        rgba(201, 162, 77, 0.25) 50%,
-        rgba(201, 162, 77, 0.1) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.timeline-avatar:has(img:not([src])):before,
-.timeline-avatar:has(img[src=""]):before {
-    opacity: 1;
-}
-
 .timeline-content:hover .timeline-avatar {
     transform: scale(1.1) rotate(5deg);
 }
 
 /* ===============================
-   RULERS SECTION WITH SHIMMER
+   RULERS SECTION
 ================================ */
 .rulers {
     max-width: 1200px;
@@ -849,30 +708,6 @@ main {
     background: linear-gradient(135deg, var(--color-primary-light), var(--color-accent-hover));
     flex-shrink: 0;
     transition: transform var(--transition-normal);
-    position: relative;
-}
-
-/* Shimmer for ruler images */
-.ruler-image::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.3) 0%,
-        rgba(255, 255, 255, 0.5) 50%,
-        rgba(255, 255, 255, 0.3) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.8s infinite;
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 1;
-}
-
-.ruler-image:has(img:not([complete])):before,
-.ruler-image:has(img[src=""]):before {
-    opacity: 1;
 }
 
 .ruler-card:hover .ruler-image {
@@ -885,8 +720,6 @@ main {
     object-fit: cover;
     display: block;
     transition: transform var(--transition-normal);
-    position: relative;
-    z-index: 2;
 }
 
 .ruler-card:hover .ruler-image img {
@@ -930,29 +763,6 @@ main {
     background-color: #e8e8e8;
     overflow: hidden;
     transition: transform var(--transition-normal), border-color var(--transition-normal);
-    position: relative;
-}
-
-/* Shimmer for navratna images */
-.navratna-image::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(212, 175, 55, 0.2) 0%,
-        rgba(212, 175, 55, 0.4) 50%,
-        rgba(212, 175, 55, 0.2) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 1;
-}
-
-.navratna-image:has(img:not([complete])):before {
-    opacity: 1;
 }
 
 .navratna-item:hover .navratna-image {
@@ -965,8 +775,6 @@ main {
     height: 100%;
     object-fit: cover;
     display: block;
-    position: relative;
-    z-index: 2;
 }
 
 .navratna-item h4 {
@@ -1071,28 +879,6 @@ main {
     justify-content: center;
     overflow: hidden;
     transition: transform var(--transition-normal);
-    position: relative;
-}
-
-/* Shimmer for source images */
-.source-image-box::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.05) 0%,
-        rgba(255, 255, 255, 0.15) 50%,
-        rgba(255, 255, 255, 0.05) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.source-image-box:has(img:not([complete])):before {
-    opacity: 1;
 }
 
 .source-image-box:hover {
@@ -1105,8 +891,6 @@ main {
     object-fit: cover;
     display: block;
     transition: transform var(--transition-normal);
-    position: relative;
-    z-index: 1;
 }
 
 .source-image-box:hover img {
@@ -1403,4 +1187,3 @@ main {
         scroll-behavior: auto !important;
     }
 }
-
