@@ -1,41 +1,38 @@
 // ===============================
-// GUPTA EMPIRE - COMPLETE JS
-// Fixed & Optimized Version v2.0
+// GUPTA EMPIRE - CLEAN OPTIMIZED JS
+// Loader-free, stable & performant
 // ===============================
 
 "use strict";
 
 const GuptaEmpire = {
-  // Configuration
   config: {
     scrollThrottle: 16,
     intersectionThreshold: 0.1,
     mobileBreakpoint: 768,
   },
 
-  // DOM Elements Cache
   dom: {},
-  
-  // Track initialization state
   initialized: false,
   eventListeners: [],
 
-  // Initialize
+  // ===============================
+  // INIT
+  // ===============================
   init() {
-    if (this.initialized) return; // Prevent duplicate initialization
+    if (this.initialized) return;
     this.initialized = true;
-    
+
     this.cacheDOM();
-    this.setupPageLoader();
     this.setupDisclaimer();
     this.setupNavbar();
     this.setupScrollProgress();
     this.setupHeroParallax();
     this.setupScrollAnimations();
+
     this.logSuccess();
   },
 
-  // Cache DOM elements
   cacheDOM() {
     this.dom = {
       body: document.body,
@@ -49,7 +46,6 @@ const GuptaEmpire = {
       navLinks: document.querySelector(".nav-links"),
       disclaimerBar: document.querySelector(".disclaimer-bar"),
       disclaimerClose: document.querySelector(".disclaimer-close"),
-      pageLoader: document.querySelector(".page-loader"),
       timelineItems: document.querySelectorAll(".timeline-item"),
       rulerCards: document.querySelectorAll(".ruler-card"),
       sourceCategories: document.querySelectorAll(".source-category"),
@@ -57,137 +53,95 @@ const GuptaEmpire = {
     };
   },
 
-  // Utility: Improved throttle function with guaranteed execution
-  throttle(func, delay) {
-    let lastCall = 0;
-    let timeoutId = null;
-    
+  // ===============================
+  // UTILITIES
+  // ===============================
+  throttle(fn, delay) {
+    let last = 0;
     return (...args) => {
       const now = Date.now();
-      const timeSinceLastCall = now - lastCall;
-      
-      if (timeSinceLastCall >= delay) {
-        lastCall = now;
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = null;
-        func.apply(this, args);
-      } else if (!timeoutId) {
-        // Ensure function runs eventually
-        timeoutId = setTimeout(() => {
-          lastCall = Date.now();
-          timeoutId = null;
-          func.apply(this, args);
-        }, delay - timeSinceLastCall);
+      if (now - last >= delay) {
+        last = now;
+        fn.apply(this, args);
       }
     };
   },
 
-  // Utility: Check if mobile
   isMobile() {
     return window.innerWidth < this.config.mobileBreakpoint;
   },
 
-  // Utility: Safe event listener addition with tracking
   addEventListener(target, event, handler, options = {}) {
     if (!target) return;
     target.addEventListener(event, handler, options);
     this.eventListeners.push({ target, event, handler });
   },
 
-  // Cleanup function for removing all listeners
   cleanup() {
     this.eventListeners.forEach(({ target, event, handler }) => {
-      if (target) target.removeEventListener(event, handler);
+      target?.removeEventListener(event, handler);
     });
     this.eventListeners = [];
     this.initialized = false;
   },
 
-  setupPageLoader() {
-    const hideLoader = () => {
-      this.dom.body.classList.remove("loading");
-      this.dom.body.classList.add("loaded");
-
-      if (this.dom.pageLoader) {
-        this.dom.pageLoader.style.display = "none";
-      }
-    };
-
-    if (document.readyState !== "loading") {
-      hideLoader();
-    } else {
-      this.addEventListener(document, "DOMContentLoaded", hideLoader);
-    }
-  },
-
-  // Setup Disclaimer Bar
+  // ===============================
+  // DISCLAIMER
+  // ===============================
   setupDisclaimer() {
     if (!this.dom.disclaimerBar) return;
 
     const dismissed = localStorage.getItem("disclaimerDismissed");
-
     if (dismissed === "true") {
       this.dom.disclaimerBar.style.display = "none";
-    } else {
-      this.dom.body.classList.add("has-disclaimer");
+      return;
     }
 
-    if (this.dom.disclaimerClose) {
-      this.addEventListener(this.dom.disclaimerClose, "click", () => {
-        this.dom.disclaimerBar.classList.add("hidden");
-        this.dom.body.classList.remove("has-disclaimer");
-        localStorage.setItem("disclaimerDismissed", "true");
+    this.dom.body.classList.add("has-disclaimer");
 
-        setTimeout(() => {
-          this.dom.disclaimerBar.style.display = "none";
-        }, 300);
-      });
-    }
+    this.addEventListener(this.dom.disclaimerClose, "click", () => {
+      this.dom.disclaimerBar.classList.add("hidden");
+      this.dom.body.classList.remove("has-disclaimer");
+      localStorage.setItem("disclaimerDismissed", "true");
+
+      setTimeout(() => {
+        this.dom.disclaimerBar.style.display = "none";
+      }, 300);
+    });
   },
 
-  // Setup Navbar
+  // ===============================
+  // NAVBAR
+  // ===============================
   setupNavbar() {
     this.setupNavbarScroll();
     this.setupMobileMenu();
     this.setupSmoothScroll();
   },
 
-  // Navbar scroll effect
   setupNavbarScroll() {
     if (!this.dom.navbar) return;
 
-    const handleScroll = this.throttle(() => {
-      if (window.scrollY > 100) {
-        this.dom.navbar.classList.add("scrolled");
-      } else {
-        this.dom.navbar.classList.remove("scrolled");
-      }
+    const onScroll = this.throttle(() => {
+      this.dom.navbar.classList.toggle("scrolled", window.scrollY > 100);
     }, 100);
 
-    this.addEventListener(window, "scroll", handleScroll, { passive: true });
+    this.addEventListener(window, "scroll", onScroll, { passive: true });
   },
 
-  // Mobile menu - FIXED: Prevent duplicate listeners
   setupMobileMenu() {
     const btn = this.dom.mobileMenuBtn;
     const menu = this.dom.navLinks;
-
     if (!btn || !menu) return;
 
     this.addEventListener(btn, "click", () => {
-      const isExpanded = btn.getAttribute("aria-expanded") === "true";
-      btn.setAttribute("aria-expanded", !isExpanded);
+      const expanded = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", !expanded);
       menu.classList.toggle("active");
-
-      if (!isExpanded) {
-        this.dom.body.style.overflow = "hidden";
-      } else {
-        this.dom.body.style.overflow = "";
-      }
+      this.dom.body.style.overflow = expanded ? "" : "hidden";
     });
 
-    const links = menu.querySelectorAll("a");
-    links.forEach((link) => {
+    menu.querySelectorAll("a").forEach(link => {
       this.addEventListener(link, "click", () => {
         menu.classList.remove("active");
         btn.setAttribute("aria-expanded", "false");
@@ -195,152 +149,119 @@ const GuptaEmpire = {
       });
     });
 
-    const closeOutsideHandler = (e) => {
-      if (btn.contains(e.target) || menu.contains(e.target)) {
-        return;
+    this.addEventListener(document, "click", (e) => {
+      if (!menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.remove("active");
+        btn.setAttribute("aria-expanded", "false");
+        this.dom.body.style.overflow = "";
       }
-      menu.classList.remove("active");
-      btn.setAttribute("aria-expanded", "false");
-      this.dom.body.style.overflow = "";
-    };
-
-    this.addEventListener(document, "click", closeOutsideHandler);
+    });
   },
 
-  // Smooth scroll for navigation links
   setupSmoothScroll() {
-    const links = document.querySelectorAll('a[href^="#"]');
-
-    links.forEach((link) => {
-      this.addEventListener(link, "click", (e) => {
-        const href = link.getAttribute("href");
-        if (href === "#") return;
-
-        const target = document.querySelector(href);
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      this.addEventListener(link, "click", e => {
+        const target = document.querySelector(link.getAttribute("href"));
         if (!target) return;
 
         e.preventDefault();
 
         const navHeight = this.dom.navbar?.offsetHeight || 70;
         const disclaimerHeight =
-          this.dom.disclaimerBar &&
-          !this.dom.disclaimerBar.classList.contains("hidden")
+          this.dom.disclaimerBar && !this.dom.disclaimerBar.classList.contains("hidden")
             ? 52
             : 0;
-        const offset = navHeight + disclaimerHeight;
-
-        const targetPosition = target.offsetTop - offset;
 
         window.scrollTo({
-          top: targetPosition,
+          top: target.offsetTop - navHeight - disclaimerHeight,
           behavior: "smooth",
         });
       });
     });
   },
 
-  // Scroll Progress Bar
+  // ===============================
+  // SCROLL PROGRESS
+  // ===============================
   setupScrollProgress() {
     if (!this.dom.scrollProgress) return;
 
-    const updateProgress = this.throttle(() => {
-      const scrollHeight =
+    const update = this.throttle(() => {
+      const height =
         document.documentElement.scrollHeight -
         document.documentElement.clientHeight;
-      const scrolled = (window.scrollY / scrollHeight) * 100;
-
-      this.dom.scrollProgress.style.width = `${scrolled}%`;
-      this.dom.scrollProgress.setAttribute(
-        "aria-valuenow",
-        Math.round(scrolled),
-      );
+      const percent = (window.scrollY / height) * 100;
+      this.dom.scrollProgress.style.width = `${percent}%`;
     }, this.config.scrollThrottle);
 
-    this.addEventListener(window, "scroll", updateProgress, { passive: true });
+    this.addEventListener(window, "scroll", update, { passive: true });
   },
 
-  // Hero Parallax Effect - FIXED: Handle responsive changes
+  // ===============================
+  // HERO PARALLAX
+  // ===============================
   setupHeroParallax() {
     if (!this.dom.hero) return;
 
-    const handleParallax = this.throttle(() => {
-      // Check mobile status on each scroll (not just on init)
+    const onScroll = this.throttle(() => {
       if (this.isMobile()) return;
 
-      const scrollY = window.scrollY;
-      const heroHeight = this.dom.hero.offsetHeight;
+      const y = window.scrollY;
+      const h = this.dom.hero.offsetHeight;
+      if (y > h) return;
 
-      if (scrollY > heroHeight) return;
-
-      if (this.dom.overlayImage) {
-        this.dom.overlayImage.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.5}px))`;
-      }
+      this.dom.overlayImage &&
+        (this.dom.overlayImage.style.transform =
+          `translate(-50%, calc(-50% + ${y * 0.5}px))`);
 
       if (this.dom.heroText) {
-        const opacity = 1 - (scrollY / heroHeight) * 1.5;
-        this.dom.heroText.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.3}px))`;
-        this.dom.heroText.style.opacity = Math.max(0, opacity);
+        this.dom.heroText.style.transform =
+          `translate(-50%, calc(-50% + ${y * 0.3}px))`;
+        this.dom.heroText.style.opacity = Math.max(0, 1 - y / h);
       }
 
-      if (this.dom.heroBackground) {
-        this.dom.heroBackground.style.transform = `translateY(${scrollY * 0.4}px) scale(1.05)`;
-      }
+      this.dom.heroBackground &&
+        (this.dom.heroBackground.style.transform =
+          `translateY(${y * 0.4}px) scale(1.05)`);
     }, this.config.scrollThrottle);
 
-    this.addEventListener(window, "scroll", handleParallax, { passive: true });
+    this.addEventListener(window, "scroll", onScroll, { passive: true });
   },
 
-  // Scroll Animations with Intersection Observer
+  // ===============================
+  // INTERSECTION ANIMATIONS
+  // ===============================
   setupScrollAnimations() {
-    const observerOptions = {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add("visible");
+      });
+    }, {
       threshold: this.config.intersectionThreshold,
       rootMargin: "0px 0px -50px 0px",
-    };
+    });
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-        }
-      });
-    }, observerOptions);
-
-    const elementsToAnimate = [
+    [
       ...this.dom.timelineItems,
       ...this.dom.rulerCards,
       ...this.dom.sourceCategories,
       ...this.dom.sections,
-    ];
-
-    elementsToAnimate.forEach((el) => {
-      if (el) observer.observe(el);
-    });
+    ].forEach(el => el && observer.observe(el));
   },
 
-  // Log success message
   logSuccess() {
     console.log(
-      "%c✅ Gupta Empire Loaded Successfully",
-      "color: #c9a24d; font-size: 16px; font-weight: bold;"
-    );
-    console.log(
-      "%cWebsite created by Aarya",
-      "color: #f7c110; font-size: 12px;"
+      "%c✅ Gupta Empire JS Loaded (No Loader)",
+      "color:#c9a24d;font-weight:bold;font-size:14px;"
     );
   },
 };
 
-// Initialize when DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => GuptaEmpire.init());
-} else {
-  GuptaEmpire.init();
-}
+// ===============================
+// BOOTSTRAP
+// ===============================
+document.readyState === "loading"
+  ? document.addEventListener("DOMContentLoaded", () => GuptaEmpire.init(), { once: true })
+  : GuptaEmpire.init();
 
-// Expose for debugging (optional)
-window.GuptaEmpire = GuptaEmpire;
-
-// Optional: Cleanup on page unload
-window.addEventListener("unload", () => {
-  GuptaEmpire.cleanup();
-});
+window.addEventListener("unload", () => GuptaEmpire.cleanup());
