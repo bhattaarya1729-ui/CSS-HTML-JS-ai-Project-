@@ -1,6 +1,6 @@
 // ===============================
 // GUPTA EMPIRE - COMPLETE JS
-// Fixed & Optimized Version
+// Fixed & Optimized Version v2.0
 // ===============================
 
 "use strict";
@@ -15,9 +15,16 @@ const GuptaEmpire = {
 
   // DOM Elements Cache
   dom: {},
+  
+  // Track initialization state
+  initialized: false,
+  eventListeners: [],
 
   // Initialize
   init() {
+    if (this.initialized) return; // Prevent duplicate initialization
+    this.initialized = true;
+    
     this.cacheDOM();
     this.setupPageLoader();
     this.setupDisclaimer();
@@ -50,14 +57,27 @@ const GuptaEmpire = {
     };
   },
 
-  // Utility: Throttle function
+  // Utility: Improved throttle function with guaranteed execution
   throttle(func, delay) {
     let lastCall = 0;
-    return function (...args) {
+    let timeoutId = null;
+    
+    return (...args) => {
       const now = Date.now();
-      if (now - lastCall >= delay) {
+      const timeSinceLastCall = now - lastCall;
+      
+      if (timeSinceLastCall >= delay) {
         lastCall = now;
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = null;
         func.apply(this, args);
+      } else if (!timeoutId) {
+        // Ensure function runs eventually
+        timeoutId = setTimeout(() => {
+          lastCall = Date.now();
+          timeoutId = null;
+          func.apply(this, args);
+        }, delay - timeSinceLastCall);
       }
     };
   },
@@ -67,31 +87,43 @@ const GuptaEmpire = {
     return window.innerWidth < this.config.mobileBreakpoint;
   },
 
-  
+  // Utility: Safe event listener addition with tracking
+  addEventListener(target, event, handler, options = {}) {
+    if (!target) return;
+    target.addEventListener(event, handler, options);
+    this.eventListeners.push({ target, event, handler });
+  },
+
+  // Cleanup function for removing all listeners
+  cleanup() {
+    this.eventListeners.forEach(({ target, event, handler }) => {
+      if (target) target.removeEventListener(event, handler);
+    });
+    this.eventListeners = [];
+    this.initialized = false;
+  },
+
   setupPageLoader() {
-  const hideLoader = () => {
-    this.dom.body.classList.remove("loading");
-    this.dom.body.classList.add("loaded");
+    const hideLoader = () => {
+      this.dom.body.classList.remove("loading");
+      this.dom.body.classList.add("loaded");
 
-    if (this.dom.pageLoader) {
-      this.dom.pageLoader.style.display = "none";
+      if (this.dom.pageLoader) {
+        this.dom.pageLoader.style.display = "none";
+      }
+    };
+
+    if (document.readyState !== "loading") {
+      hideLoader();
+    } else {
+      this.addEventListener(document, "DOMContentLoaded", hideLoader);
     }
-  };
-
-  // If DOM is already loaded, hide loader immediately
-  if (document.readyState !== "loading") {
-    hideLoader();
-  } else {
-    // Otherwise wait for DOMContentLoaded
-    document.addEventListener("DOMContentLoaded", hideLoader);
-  }
-},
+  },
 
   // Setup Disclaimer Bar
   setupDisclaimer() {
     if (!this.dom.disclaimerBar) return;
 
-    // Check if disclaimer was previously dismissed
     const dismissed = localStorage.getItem("disclaimerDismissed");
 
     if (dismissed === "true") {
@@ -100,9 +132,8 @@ const GuptaEmpire = {
       this.dom.body.classList.add("has-disclaimer");
     }
 
-    // Close button handler
     if (this.dom.disclaimerClose) {
-      this.dom.disclaimerClose.addEventListener("click", () => {
+      this.addEventListener(this.dom.disclaimerClose, "click", () => {
         this.dom.disclaimerBar.classList.add("hidden");
         this.dom.body.classList.remove("has-disclaimer");
         localStorage.setItem("disclaimerDismissed", "true");
@@ -133,22 +164,21 @@ const GuptaEmpire = {
       }
     }, 100);
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    this.addEventListener(window, "scroll", handleScroll, { passive: true });
   },
 
-  // Mobile menu
+  // Mobile menu - FIXED: Prevent duplicate listeners
   setupMobileMenu() {
     const btn = this.dom.mobileMenuBtn;
     const menu = this.dom.navLinks;
 
     if (!btn || !menu) return;
 
-    btn.addEventListener("click", () => {
+    this.addEventListener(btn, "click", () => {
       const isExpanded = btn.getAttribute("aria-expanded") === "true";
       btn.setAttribute("aria-expanded", !isExpanded);
       menu.classList.toggle("active");
 
-      // Prevent body scroll when menu is open
       if (!isExpanded) {
         this.dom.body.style.overflow = "hidden";
       } else {
@@ -156,24 +186,25 @@ const GuptaEmpire = {
       }
     });
 
-    // Close menu when clicking on links
     const links = menu.querySelectorAll("a");
     links.forEach((link) => {
-      link.addEventListener("click", () => {
+      this.addEventListener(link, "click", () => {
         menu.classList.remove("active");
         btn.setAttribute("aria-expanded", "false");
         this.dom.body.style.overflow = "";
       });
     });
 
-    // Close menu when clicking outside
-    document.addEventListener("click", (e) => {
-      if (!btn.contains(e.target) && !menu.contains(e.target)) {
-        menu.classList.remove("active");
-        btn.setAttribute("aria-expanded", "false");
-        this.dom.body.style.overflow = "";
+    const closeOutsideHandler = (e) => {
+      if (btn.contains(e.target) || menu.contains(e.target)) {
+        return;
       }
-    });
+      menu.classList.remove("active");
+      btn.setAttribute("aria-expanded", "false");
+      this.dom.body.style.overflow = "";
+    };
+
+    this.addEventListener(document, "click", closeOutsideHandler);
   },
 
   // Smooth scroll for navigation links
@@ -181,7 +212,7 @@ const GuptaEmpire = {
     const links = document.querySelectorAll('a[href^="#"]');
 
     links.forEach((link) => {
-      link.addEventListener("click", (e) => {
+      this.addEventListener(link, "click", (e) => {
         const href = link.getAttribute("href");
         if (href === "#") return;
 
@@ -225,40 +256,38 @@ const GuptaEmpire = {
       );
     }, this.config.scrollThrottle);
 
-    window.addEventListener("scroll", updateProgress, { passive: true });
+    this.addEventListener(window, "scroll", updateProgress, { passive: true });
   },
 
-  // Hero Parallax Effect
+  // Hero Parallax Effect - FIXED: Handle responsive changes
   setupHeroParallax() {
-    // Skip parallax on mobile for performance
-    if (this.isMobile() || !this.dom.hero) return;
+    if (!this.dom.hero) return;
 
     const handleParallax = this.throttle(() => {
+      // Check mobile status on each scroll (not just on init)
+      if (this.isMobile()) return;
+
       const scrollY = window.scrollY;
       const heroHeight = this.dom.hero.offsetHeight;
 
-      // Only apply parallax when in hero section
       if (scrollY > heroHeight) return;
 
-      // Sun moves slower (0.5x)
       if (this.dom.overlayImage) {
         this.dom.overlayImage.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.5}px))`;
       }
 
-      // Text moves even slower (0.3x) and fades out
       if (this.dom.heroText) {
         const opacity = 1 - (scrollY / heroHeight) * 1.5;
         this.dom.heroText.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.3}px))`;
         this.dom.heroText.style.opacity = Math.max(0, opacity);
       }
 
-      // Background moves slowest (0.4x)
       if (this.dom.heroBackground) {
         this.dom.heroBackground.style.transform = `translateY(${scrollY * 0.4}px) scale(1.05)`;
       }
     }, this.config.scrollThrottle);
 
-    window.addEventListener("scroll", handleParallax, { passive: true });
+    this.addEventListener(window, "scroll", handleParallax, { passive: true });
   },
 
   // Scroll Animations with Intersection Observer
@@ -272,13 +301,10 @@ const GuptaEmpire = {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("visible");
-          // Optional: Stop observing after animation
-          // observer.unobserve(entry.target);
         }
       });
     }, observerOptions);
 
-    // Observe all animated elements
     const elementsToAnimate = [
       ...this.dom.timelineItems,
       ...this.dom.rulerCards,
@@ -295,11 +321,11 @@ const GuptaEmpire = {
   logSuccess() {
     console.log(
       "%c✅ Gupta Empire Loaded Successfully",
-      "color: #c9a24d; font-size: 16px; font-weight: bold;",
+      "color: #c9a24d; font-size: 16px; font-weight: bold;"
     );
     console.log(
       "%cWebsite created by Aarya",
-      "color: #f7c110; font-size: 12px;",
+      "color: #f7c110; font-size: 12px;"
     );
   },
 };
@@ -314,3 +340,7 @@ if (document.readyState === "loading") {
 // Expose for debugging (optional)
 window.GuptaEmpire = GuptaEmpire;
 
+// Optional: Cleanup on page unload
+window.addEventListener("unload", () => {
+  GuptaEmpire.cleanup();
+});
