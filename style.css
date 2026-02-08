@@ -142,7 +142,16 @@ body.loaded .page-loader {
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, opacity 0.3s ease;
     z-index: 9999;
+}
+
+body:not(.disclaimer-dismissed) .disclaimer-bar {
+    display: flex;
+}
+
+body.disclaimer-dismissed .disclaimer-bar {
+    display: none;
 }
 
 .disclaimer-bar.hidden {
@@ -1394,3 +1403,4 @@ main {
         scroll-behavior: auto !important;
     }
 }
+
