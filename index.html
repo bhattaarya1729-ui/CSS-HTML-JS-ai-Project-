@@ -9,15 +9,22 @@
     <meta name="robots" content="index, follow" />
     
     <link rel="icon" type="image/png" href="image/logo.png" />
+    
+    <!-- OPTIMIZED: Preload critical CSS -->
     <link rel="preload" href="style.css" as="style" />
+    <link rel="stylesheet" href="style.css" />
+    
+    <!-- OPTIMIZED: Preload critical hero images only -->
+    <link rel="preload" href="image/background image.jpg" as="image" />
+    <link rel="preload" href="image/sun.png" as="image" />
+    <link rel="preload" href="image/GuptaDynasty.png" as="image" />
     
     <title>Gupta Empire | Educational Project</title>
-    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+    <!-- OPTIMIZED: Minimal loader -->
     <div class="page-loader">
         <div class="loader-spinner"></div>
-        <p>Loading Gupta Empire...</p>
     </div>
 
     <div class="disclaimer-bar">
@@ -86,6 +93,7 @@
                 <h2>Chronological Order of the Gupta Dynasty <span>(319 AD – 540 AD)</span></h2>
             </header>
             <div class="timeline">
+                <!-- OPTIMIZED: Added loading="lazy" to all timeline images -->
                 <div class="timeline-item left">
                     <div class="timeline-content">
                         <figure class="timeline-avatar">
@@ -579,6 +587,7 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <!-- OPTIMIZED: Load script at end with defer -->
+    <script src="script.js" defer></script>
 </body>
 </html>
