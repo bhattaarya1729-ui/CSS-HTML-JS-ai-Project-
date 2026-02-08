@@ -69,15 +69,23 @@ const GuptaEmpire = {
 
   
   setupPageLoader() {
-    document.addEventListener("DOMContentLoaded", () => {
-      this.dom.body.classList.remove("loading");
-      this.dom.body.classList.add("loaded");
+  const hideLoader = () => {
+    this.dom.body.classList.remove("loading");
+    this.dom.body.classList.add("loaded");
 
-      if (this.dom.pageLoader) {
-        this.dom.pageLoader.style.display = "none";
-      }
-    });
-  },
+    if (this.dom.pageLoader) {
+      this.dom.pageLoader.style.display = "none";
+    }
+  };
+
+  // If DOM is already loaded, hide loader immediately
+  if (document.readyState !== "loading") {
+    hideLoader();
+  } else {
+    // Otherwise wait for DOMContentLoaded
+    document.addEventListener("DOMContentLoaded", hideLoader);
+  }
+},
 
   // Setup Disclaimer Bar
   setupDisclaimer() {
@@ -305,3 +313,4 @@ if (document.readyState === "loading") {
 
 // Expose for debugging (optional)
 window.GuptaEmpire = GuptaEmpire;
+
