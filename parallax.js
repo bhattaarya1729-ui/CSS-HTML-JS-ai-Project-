@@ -239,11 +239,14 @@ const GuptaEmpire = {
   setupScrollAnimations() {
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add("visible");
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          console.log("Made visible:", entry.target); // Debug line
+        }
       });
     }, {
-      threshold: this.config.intersectionThreshold,
-      rootMargin: "0px 0px -50px 0px",
+      threshold: 0.01, // Much lower threshold
+      rootMargin: "0px 0px 0px 0px", // Remove negative margin
     });
 
     [
@@ -270,5 +273,6 @@ document.readyState === "loading"
   : GuptaEmpire.init();
 
 window.addEventListener("unload", () => GuptaEmpire.cleanup());
+
 
 
