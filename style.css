@@ -1187,3 +1187,17 @@ main {
         scroll-behavior: auto !important;
     }
 }
+
+/* ===============================
+   EMERGENCY FIX - Force content visible
+================================ */
+.background,
+.chronology,
+.rulers,
+.sources,
+.timeline-item,
+.ruler-card,
+.source-category {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
