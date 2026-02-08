@@ -88,16 +88,16 @@ const GuptaEmpire = {
   // ===============================
   // DISCLAIMER
   // ===============================
-  setupDisclaimer() {
-    if (!this.dom.disclaimerBar) return;
+  this.addEventListener(this.dom.disclaimerClose, "click", () => {
+      this.dom.disclaimerBar.classList.add("hidden");
+      this.dom.body.classList.remove("has-disclaimer");
+      this.dom.body.classList.add("disclaimer-dismissed"); // Add this
+      localStorage.setItem("disclaimerDismissed", "true");
 
-    const dismissed = localStorage.getItem("disclaimerDismissed");
-    if (dismissed === "true") {
-      this.dom.disclaimerBar.style.display = "none";
-      return;
-    }
-
-    this.dom.body.classList.add("has-disclaimer");
+      setTimeout(() => {
+        this.dom.disclaimerBar.style.display = "none";
+      }, 300);
+    });
 
     this.addEventListener(this.dom.disclaimerClose, "click", () => {
       this.dom.disclaimerBar.classList.add("hidden");
@@ -265,3 +265,4 @@ document.readyState === "loading"
   : GuptaEmpire.init();
 
 window.addEventListener("unload", () => GuptaEmpire.cleanup());
+
