@@ -1,249 +1,307 @@
 // ===============================
-// GUPTA EMPIRE — MASTER SCRIPT
-// Fixed, Integrated & Optimized
+// GUPTA EMPIRE - COMPLETE JS
+// Fixed & Optimized Version
 // ===============================
 
-'use strict';
+"use strict";
 
-/* ===============================
-   CONFIGURATION
-================================ */
-const CONFIG = {
-  breakpoints: {
-    mobile: 768,
-    tablet: 1024
+const GuptaEmpire = {
+  // Configuration
+  config: {
+    scrollThrottle: 16,
+    intersectionThreshold: 0.1,
+    mobileBreakpoint: 768,
   },
-  scrollThrottle: 16,
-  intersectionThreshold: 0.1,
-  particleCount: {
-    desktop: 30,
-    mobile: 10
-  }
-};
 
-/* ===============================
-   UTILITIES
-================================ */
-const Utils = {
-  throttle(fn, delay) {
-    let last = 0;
-    return (...args) => {
+  // DOM Elements Cache
+  dom: {},
+
+  // Initialize
+  init() {
+    this.cacheDOM();
+    this.setupPageLoader();
+    this.setupDisclaimer();
+    this.setupNavbar();
+    this.setupScrollProgress();
+    this.setupHeroParallax();
+    this.setupScrollAnimations();
+    this.logSuccess();
+  },
+
+  // Cache DOM elements
+  cacheDOM() {
+    this.dom = {
+      body: document.body,
+      navbar: document.querySelector(".navbar"),
+      hero: document.querySelector(".hero"),
+      heroBackground: document.querySelector(".hero-background"),
+      overlayImage: document.querySelector(".overlay-image"),
+      heroText: document.querySelector(".hero-text"),
+      scrollProgress: document.querySelector(".scroll-progress"),
+      mobileMenuBtn: document.querySelector(".mobile-menu-btn"),
+      navLinks: document.querySelector(".nav-links"),
+      disclaimerBar: document.querySelector(".disclaimer-bar"),
+      disclaimerClose: document.querySelector(".disclaimer-close"),
+      pageLoader: document.querySelector(".page-loader"),
+      timelineItems: document.querySelectorAll(".timeline-item"),
+      rulerCards: document.querySelectorAll(".ruler-card"),
+      sourceCategories: document.querySelectorAll(".source-category"),
+      sections: document.querySelectorAll(".section-animate"),
+    };
+  },
+
+  // Utility: Throttle function
+  throttle(func, delay) {
+    let lastCall = 0;
+    return function (...args) {
       const now = Date.now();
-      if (now - last >= delay) {
-        last = now;
-        fn(...args);
+      if (now - lastCall >= delay) {
+        lastCall = now;
+        func.apply(this, args);
       }
     };
   },
 
-  debounce(fn, delay) {
-    let t;
-    return (...args) => {
-      clearTimeout(t);
-      t = setTimeout(() => fn(...args), delay);
-    };
-  },
-
+  // Utility: Check if mobile
   isMobile() {
-    return window.innerWidth < CONFIG.breakpoints.mobile;
+    return window.innerWidth < this.config.mobileBreakpoint;
   },
 
-  qs(sel) {
-    try { return document.querySelector(sel); }
-    catch { return null; }
+  
+  setupPageLoader() {
+    document.addEventListener("DOMContentLoaded", () => {
+      this.dom.body.classList.remove("loading");
+      this.dom.body.classList.add("loaded");
+
+      if (this.dom.pageLoader) {
+        this.dom.pageLoader.style.display = "none";
+      }
+    });
   },
 
-  qsa(sel) {
-    try { return document.querySelectorAll(sel); }
-    catch { return []; }
-  }
-};
+  // Setup Disclaimer Bar
+  setupDisclaimer() {
+    if (!this.dom.disclaimerBar) return;
 
-/* ===============================
-   DOM CACHE
-================================ */
-const DOM = {
-  init() {
-    this.navbar = Utils.qs('.navbar');
-    this.hero = Utils.qs('.hero');
-    this.overlayImage = Utils.qs('.overlay-image');
-    this.heroText = Utils.qs('.hero-text');
-    this.heroBackground = Utils.qs('.hero-background');
-    this.scrollProgress = Utils.qs('.scroll-progress');
-    this.mobileMenuBtn = Utils.qs('.mobile-menu-btn');
-    this.navLinks = Utils.qs('.nav-links');
-    this.timelineItems = Utils.qsa('.timeline-item');
-    this.rulerCards = Utils.qsa('.ruler-card');
-    this.sourceCategories = Utils.qsa('.source-category');
-    this.sections = Utils.qsa('.section-animate');
-  }
-};
+    // Check if disclaimer was previously dismissed
+    const dismissed = localStorage.getItem("disclaimerDismissed");
 
-/* ===============================
-   NAVBAR
-================================ */
-const Navbar = {
-  init() {
-    this.scrollEffect();
-    this.mobileMenu();
-    this.smoothScroll();
+    if (dismissed === "true") {
+      this.dom.disclaimerBar.style.display = "none";
+    } else {
+      this.dom.body.classList.add("has-disclaimer");
+    }
+
+    // Close button handler
+    if (this.dom.disclaimerClose) {
+      this.dom.disclaimerClose.addEventListener("click", () => {
+        this.dom.disclaimerBar.classList.add("hidden");
+        this.dom.body.classList.remove("has-disclaimer");
+        localStorage.setItem("disclaimerDismissed", "true");
+
+        setTimeout(() => {
+          this.dom.disclaimerBar.style.display = "none";
+        }, 300);
+      });
+    }
   },
 
-  scrollEffect() {
-    if (!DOM.navbar) return;
-
-    window.addEventListener(
-      'scroll',
-      Utils.throttle(() => {
-        DOM.navbar.classList.toggle('scrolled', window.scrollY > 100);
-      }, 100),
-      { passive: true }
-    );
+  // Setup Navbar
+  setupNavbar() {
+    this.setupNavbarScroll();
+    this.setupMobileMenu();
+    this.setupSmoothScroll();
   },
 
-  mobileMenu() {
-    const btn = DOM.mobileMenuBtn;
-    const menu = DOM.navLinks;
+  // Navbar scroll effect
+  setupNavbarScroll() {
+    if (!this.dom.navbar) return;
+
+    const handleScroll = this.throttle(() => {
+      if (window.scrollY > 100) {
+        this.dom.navbar.classList.add("scrolled");
+      } else {
+        this.dom.navbar.classList.remove("scrolled");
+      }
+    }, 100);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+  },
+
+  // Mobile menu
+  setupMobileMenu() {
+    const btn = this.dom.mobileMenuBtn;
+    const menu = this.dom.navLinks;
+
     if (!btn || !menu) return;
 
-    btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', !open);
-      menu.classList.toggle('active');
+    btn.addEventListener("click", () => {
+      const isExpanded = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", !isExpanded);
+      menu.classList.toggle("active");
+
+      // Prevent body scroll when menu is open
+      if (!isExpanded) {
+        this.dom.body.style.overflow = "hidden";
+      } else {
+        this.dom.body.style.overflow = "";
+      }
     });
 
-    menu.querySelectorAll('a').forEach(link =>
-      link.addEventListener('click', () => {
-        menu.classList.remove('active');
-        btn.setAttribute('aria-expanded', 'false');
-      })
-    );
+    // Close menu when clicking on links
+    const links = menu.querySelectorAll("a");
+    links.forEach((link) => {
+      link.addEventListener("click", () => {
+        menu.classList.remove("active");
+        btn.setAttribute("aria-expanded", "false");
+        this.dom.body.style.overflow = "";
+      });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove("active");
+        btn.setAttribute("aria-expanded", "false");
+        this.dom.body.style.overflow = "";
+      }
+    });
   },
 
-  smoothScroll() {
-    Utils.qsa('a[href^="#"]').forEach(link => {
-      link.addEventListener('click', e => {
-        const id = link.getAttribute('href');
-        if (id === '#') return;
+  // Smooth scroll for navigation links
+  setupSmoothScroll() {
+    const links = document.querySelectorAll('a[href^="#"]');
 
-        const target = Utils.qs(id);
+    links.forEach((link) => {
+      link.addEventListener("click", (e) => {
+        const href = link.getAttribute("href");
+        if (href === "#") return;
+
+        const target = document.querySelector(href);
         if (!target) return;
 
         e.preventDefault();
-        const offset = DOM.navbar?.offsetHeight || 70;
+
+        const navHeight = this.dom.navbar?.offsetHeight || 70;
+        const disclaimerHeight =
+          this.dom.disclaimerBar &&
+          !this.dom.disclaimerBar.classList.contains("hidden")
+            ? 52
+            : 0;
+        const offset = navHeight + disclaimerHeight;
+
+        const targetPosition = target.offsetTop - offset;
+
         window.scrollTo({
-          top: target.offsetTop - offset,
-          behavior: 'smooth'
+          top: targetPosition,
+          behavior: "smooth",
         });
       });
     });
-  }
-};
+  },
 
-/* ===============================
-   HERO PARALLAX
-================================ */
-const HeroParallax = {
-  init() {
-    if (Utils.isMobile() || !DOM.hero) return;
+  // Scroll Progress Bar
+  setupScrollProgress() {
+    if (!this.dom.scrollProgress) return;
 
-    window.addEventListener(
-      'scroll',
-      Utils.throttle(() => {
-        const y = window.scrollY;
-        const h = DOM.hero.offsetHeight;
-        if (y > h) return;
+    const updateProgress = this.throttle(() => {
+      const scrollHeight =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      const scrolled = (window.scrollY / scrollHeight) * 100;
 
-        DOM.overlayImage &&
-          (DOM.overlayImage.style.transform =
-            `translate(-50%, calc(-50% + ${y * 0.5}px))`);
+      this.dom.scrollProgress.style.width = `${scrolled}%`;
+      this.dom.scrollProgress.setAttribute(
+        "aria-valuenow",
+        Math.round(scrolled),
+      );
+    }, this.config.scrollThrottle);
 
-        DOM.heroText &&
-          (DOM.heroText.style.transform =
-            `translate(-50%, calc(-50% + ${y * 0.3}px))`);
+    window.addEventListener("scroll", updateProgress, { passive: true });
+  },
 
-        DOM.heroBackground &&
-          (DOM.heroBackground.style.transform =
-            `translateY(${y * 0.4}px) scale(1.05)`);
-      }, CONFIG.scrollThrottle),
-      { passive: true }
-    );
-  }
-};
+  // Hero Parallax Effect
+  setupHeroParallax() {
+    // Skip parallax on mobile for performance
+    if (this.isMobile() || !this.dom.hero) return;
 
-/* ===============================
-   SCROLL ANIMATIONS
-================================ */
-const ScrollAnimations = {
-  init() {
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) e.target.classList.add('visible');
+    const handleParallax = this.throttle(() => {
+      const scrollY = window.scrollY;
+      const heroHeight = this.dom.hero.offsetHeight;
+
+      // Only apply parallax when in hero section
+      if (scrollY > heroHeight) return;
+
+      // Sun moves slower (0.5x)
+      if (this.dom.overlayImage) {
+        this.dom.overlayImage.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.5}px))`;
+      }
+
+      // Text moves even slower (0.3x) and fades out
+      if (this.dom.heroText) {
+        const opacity = 1 - (scrollY / heroHeight) * 1.5;
+        this.dom.heroText.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.3}px))`;
+        this.dom.heroText.style.opacity = Math.max(0, opacity);
+      }
+
+      // Background moves slowest (0.4x)
+      if (this.dom.heroBackground) {
+        this.dom.heroBackground.style.transform = `translateY(${scrollY * 0.4}px) scale(1.05)`;
+      }
+    }, this.config.scrollThrottle);
+
+    window.addEventListener("scroll", handleParallax, { passive: true });
+  },
+
+  // Scroll Animations with Intersection Observer
+  setupScrollAnimations() {
+    const observerOptions = {
+      threshold: this.config.intersectionThreshold,
+      rootMargin: "0px 0px -50px 0px",
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          // Optional: Stop observing after animation
+          // observer.unobserve(entry.target);
+        }
       });
-    }, {
-      threshold: CONFIG.intersectionThreshold,
-      rootMargin: '0px 0px -50px'
+    }, observerOptions);
+
+    // Observe all animated elements
+    const elementsToAnimate = [
+      ...this.dom.timelineItems,
+      ...this.dom.rulerCards,
+      ...this.dom.sourceCategories,
+      ...this.dom.sections,
+    ];
+
+    elementsToAnimate.forEach((el) => {
+      if (el) observer.observe(el);
     });
+  },
 
-    [
-      ...DOM.timelineItems,
-      ...DOM.rulerCards,
-      ...DOM.sourceCategories,
-      ...DOM.sections
-    ].forEach(el => observer.observe(el));
-  }
-};
-
-/* ===============================
-   SCROLL PROGRESS
-================================ */
-const ScrollProgress = {
-  init() {
-    if (!DOM.scrollProgress) return;
-
-    window.addEventListener(
-      'scroll',
-      Utils.throttle(() => {
-        const h =
-          document.documentElement.scrollHeight -
-          document.documentElement.clientHeight;
-        DOM.scrollProgress.style.width =
-          `${(window.scrollY / h) * 100}%`;
-      }, CONFIG.scrollThrottle),
-      { passive: true }
+  // Log success message
+  logSuccess() {
+    console.log(
+      "%c✅ Gupta Empire Loaded Successfully",
+      "color: #c9a24d; font-size: 16px; font-weight: bold;",
     );
-  }
+    console.log(
+      "%cWebsite created by Aarya",
+      "color: #f7c110; font-size: 12px;",
+    );
+  },
 };
 
-/* ===============================
-   PAGE LOADER
-================================ */
-const PageLoader = {
-  init() {
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        document.body.classList.remove('loading');
-        document.body.classList.add('loaded');
-      }, 400);
-    });
-  }
-};
+// Initialize when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => GuptaEmpire.init());
+} else {
+  GuptaEmpire.init();
+}
 
-/* ===============================
-   APP BOOTSTRAP
-================================ */
-const App = {
-  init() {
-    DOM.init();
-    PageLoader.init();
-    Navbar.init();
-    ScrollProgress.init();
-    HeroParallax.init();
-    ScrollAnimations.init();
-    console.log('✅ Gupta Empire JS Loaded');
-  }
-};
-
-document.readyState === 'loading'
-  ? document.addEventListener('DOMContentLoaded', App.init)
-  : App.init();
+// Expose for debugging (optional)
+window.GuptaEmpire = GuptaEmpire;
